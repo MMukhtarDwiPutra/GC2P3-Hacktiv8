@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package bookpb; // Ensure this matches the generated Go package name
+
+import "google/protobuf/empty.proto";
+
+option go_package = "./pb/bookpb"; // Updated to match the generated Go package
+
+service BookService {
+    rpc CreateBook (BookRequest) returns (WebResponse);
+    rpc GetBookById(BookId) returns (WebResponse);
+    rpc GetAllBooks(google.protobuf.Empty) returns (WebResponse);
+    rpc UpdateBookById(UpdateBookRequest) returns (WebResponse);
+    rpc DeleteBookById(BookId) returns (WebResponse);
+}
+
+message BookData {
+    string id = 1;
+    string title = 2;
+    string author = 3;
+    string published_date = 4;
+    string status = 5;
+    string user_id = 6;
+}
+
+message BookRequest {
+    string title = 1;
+    string author = 2;
+    string published_date = 3;
+    string status = 4;
+    string user_id = 5;
+}
+
+message UpdateBookRequest {
+    string title = 1;
+    string author = 2;
+    string published_date = 3;
+    string status = 4;
+    string user_id = 5;
+    string book_id = 6;
+}
+
+message WebResponse {
+    string status = 1;
+    string data = 2;
+}
+
+message BookId {
+    string id = 1;
+}
