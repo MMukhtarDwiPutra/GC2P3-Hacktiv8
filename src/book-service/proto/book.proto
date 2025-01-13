@@ -13,6 +13,7 @@ service BookService {
     rpc UpdateBookById(UpdateBookRequest) returns (WebResponse);
     rpc DeleteBookById(BookId) returns (WebResponse);
     rpc UpdateStatusBookById (UpdateStatusBookRequest) returns (WebResponse);
+    rpc GetAllNotReturnedBook(google.protobuf.Empty) returns (WebResponse);
 }
 
 message BookData {
@@ -53,4 +54,7 @@ message WebResponse {
 
 message BookId {
     string id = 1;
+}
+
+message Empty{
 }

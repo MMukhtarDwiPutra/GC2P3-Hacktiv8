@@ -3,8 +3,10 @@ package repository
 import (
 	"borrow-service/models"
 	"context"
+	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo"
 	"go.mongodb.org/mongo-driver/bson"
@@ -19,6 +21,7 @@ type BorrowRepository interface {
 	UpdateBorrow(id primitive.ObjectID, borrow models.BorrowedBookRequest) (*mongo.UpdateResult, error)
 	DeleteBorrowById(id primitive.ObjectID) (*mongo.DeleteResult, error)
 	UpdateReturnBorrow(id primitive.ObjectID, borrow models.UpdateBorrowedBook) (*mongo.UpdateResult, error)
+	GetAllNotReturnedBook() (*[]models.BorrowedBook, error)
 }
 
 type borrowRepository struct {
@@ -148,4 +151,37 @@ func (r *borrowRepository) DeleteBorrowById(id primitive.ObjectID) (*mongo.Delet
 	}
 
 	return result, nil
+}
+
+func (r *borrowRepository) GetAllNotReturnedBook() (*[]models.BorrowedBook, error) {
+	var borrows []models.BorrowedBook
+
+	now := time.Now()
+	lateDate := now.AddDate(0, 0, -30) // 30 days before
+
+	// Query untuk discovery_date <= fiveYearsAgo and status = "active"
+	filter := bson.M{"borrowed_date": bson.M{"$lte": lateDate}, "status": "active"}
+
+	// Find books based on the filter
+	cursor, err := r.collection.Find(context.Background(), filter)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find books: %v", err)
+	}
+	defer cursor.Close(context.Background())
+
+	// Iterate through the cursor and add books to the result slice
+	for cursor.Next(context.Background()) {
+		var borrow models.BorrowedBook
+		if err := cursor.Decode(&borrow); err != nil {
+			return nil, fmt.Errorf("failed to decode book: %v", err)
+		}
+		borrows = append(borrows, borrow)
+	}
+
+	// Check if there were any errors during the cursor iteration
+	if err := cursor.Err(); err != nil {
+		return nil, fmt.Errorf("cursor iteration error: %v", err)
+	}
+
+	return &borrows, nil
 }

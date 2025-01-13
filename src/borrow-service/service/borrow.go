@@ -16,6 +16,7 @@ type BorrowService interface {
 	GetAllBorrowsByUser(id primitive.ObjectID) (int, map[string]interface{})
 	UpdateBorrowById(id primitive.ObjectID, borrow models.BorrowedBookRequest) (int, map[string]interface{})
 	ReturnBook(id primitive.ObjectID, borrow models.UpdateBorrowedBook) (int, map[string]interface{})
+	GetAllNotReturnedBook() (int, map[string]interface{})
 }
 
 type borrowService struct {
@@ -154,4 +155,25 @@ func (s *borrowService) DeleteBorrowById(id primitive.ObjectID) (int, map[string
 	}
 
 	return http.StatusOK, webResponse
+}
+
+func (s *borrowService) GetAllNotReturnedBook() (int, map[string]interface{}) {
+	borrowResult, err := s.borrowRepository.GetAllNotReturnedBook()
+
+	if borrowResult == nil {
+		return http.StatusOK, map[string]interface{}{
+			"message": "Belum ada data peminjaman",
+		}
+	}
+	if err != nil {
+		return http.StatusInternalServerError, map[string]interface{}{
+			"message": "internal server error",
+		}
+	}
+
+	return http.StatusOK, map[string]interface{}{
+		"status":  http.StatusOK,
+		"message": "Get All Not Returned Book Success",
+		"data":    borrowResult,
+	}
 }

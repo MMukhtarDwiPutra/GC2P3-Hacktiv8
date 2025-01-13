@@ -37,7 +37,6 @@ func (s *bookService) CreateBook(request models.BookRequest) (int, map[string]in
 
 	bookResult, err := s.bookRepository.CreateBook(book)
 	if err != nil {
-		fmt.Println(err)
 		return http.StatusInternalServerError, map[string]interface{}{
 			"message": "internal server error",
 		}
@@ -79,7 +78,6 @@ func (s *bookService) GetBookById(id primitive.ObjectID) (int, map[string]interf
 func (s *bookService) GetAllBooks() (int, map[string]interface{}) {
 	bookResult, err := s.bookRepository.GetAllBooks()
 	if err != nil {
-		fmt.Println(err)
 		return http.StatusInternalServerError, map[string]interface{}{
 			"message": "internal server error",
 		}

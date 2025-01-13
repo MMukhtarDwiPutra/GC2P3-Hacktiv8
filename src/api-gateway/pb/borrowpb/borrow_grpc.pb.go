@@ -19,9 +19,10 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	BorrowService_BorrowABook_FullMethodName   = "/borrowpb.BorrowService/BorrowABook"
-	BorrowService_ReturnBook_FullMethodName    = "/borrowpb.BorrowService/ReturnBook"
-	BorrowService_GetAllBorrows_FullMethodName = "/borrowpb.BorrowService/GetAllBorrows"
+	BorrowService_BorrowABook_FullMethodName           = "/borrowpb.BorrowService/BorrowABook"
+	BorrowService_ReturnBook_FullMethodName            = "/borrowpb.BorrowService/ReturnBook"
+	BorrowService_GetAllBorrows_FullMethodName         = "/borrowpb.BorrowService/GetAllBorrows"
+	BorrowService_GetAllNotReturnedBook_FullMethodName = "/borrowpb.BorrowService/GetAllNotReturnedBook"
 )
 
 // BorrowServiceClient is the client API for BorrowService service.
@@ -31,6 +32,7 @@ type BorrowServiceClient interface {
 	BorrowABook(ctx context.Context, in *BorrowedBookRequest, opts ...grpc.CallOption) (*WebResponse, error)
 	ReturnBook(ctx context.Context, in *UpdateBorrowedBook, opts ...grpc.CallOption) (*WebResponse, error)
 	GetAllBorrows(ctx context.Context, in *UserId, opts ...grpc.CallOption) (*WebResponse, error)
+	GetAllNotReturnedBook(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*WebResponse, error)
 }
 
 type borrowServiceClient struct {
@@ -71,6 +73,16 @@ func (c *borrowServiceClient) GetAllBorrows(ctx context.Context, in *UserId, opt
 	return out, nil
 }
 
+func (c *borrowServiceClient) GetAllNotReturnedBook(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*WebResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(WebResponse)
+	err := c.cc.Invoke(ctx, BorrowService_GetAllNotReturnedBook_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BorrowServiceServer is the server API for BorrowService service.
 // All implementations must embed UnimplementedBorrowServiceServer
 // for forward compatibility.
@@ -78,6 +90,7 @@ type BorrowServiceServer interface {
 	BorrowABook(context.Context, *BorrowedBookRequest) (*WebResponse, error)
 	ReturnBook(context.Context, *UpdateBorrowedBook) (*WebResponse, error)
 	GetAllBorrows(context.Context, *UserId) (*WebResponse, error)
+	GetAllNotReturnedBook(context.Context, *Empty) (*WebResponse, error)
 	mustEmbedUnimplementedBorrowServiceServer()
 }
 
@@ -96,6 +109,9 @@ func (UnimplementedBorrowServiceServer) ReturnBook(context.Context, *UpdateBorro
 }
 func (UnimplementedBorrowServiceServer) GetAllBorrows(context.Context, *UserId) (*WebResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAllBorrows not implemented")
+}
+func (UnimplementedBorrowServiceServer) GetAllNotReturnedBook(context.Context, *Empty) (*WebResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAllNotReturnedBook not implemented")
 }
 func (UnimplementedBorrowServiceServer) mustEmbedUnimplementedBorrowServiceServer() {}
 func (UnimplementedBorrowServiceServer) testEmbeddedByValue()                       {}
@@ -172,6 +188,24 @@ func _BorrowService_GetAllBorrows_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BorrowService_GetAllNotReturnedBook_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BorrowServiceServer).GetAllNotReturnedBook(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BorrowService_GetAllNotReturnedBook_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BorrowServiceServer).GetAllNotReturnedBook(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BorrowService_ServiceDesc is the grpc.ServiceDesc for BorrowService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -190,6 +224,10 @@ var BorrowService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetAllBorrows",
 			Handler:    _BorrowService_GetAllBorrows_Handler,
+		},
+		{
+			MethodName: "GetAllNotReturnedBook",
+			Handler:    _BorrowService_GetAllNotReturnedBook_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

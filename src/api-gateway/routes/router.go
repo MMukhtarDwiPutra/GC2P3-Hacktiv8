@@ -4,12 +4,14 @@ import (
 	"api-gateway/controller"
 	_ "api-gateway/docs" // Ensure this is enabled for Swagger
 	"api-gateway/middlewares"
+	"log"
 
 	"html/template"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/robfig/cron"
 	echoSwagger "github.com/swaggo/echo-swagger"
 )
 
@@ -56,6 +58,22 @@ func NewRouter(
 	e.POST("/borrows", borrowController.BorrowABook, middlewares.RequireAuth)
 	e.POST("/borrows/return", borrowController.ReturnBook, middlewares.RequireAuth)
 	e.GET("/borrows", borrowController.GetAllBorrows, middlewares.RequireAuth)
+
+	// Start the cron job for updating the status of books
+	go func() {
+		cronJob := cron.New()
+
+		err := cronJob.AddFunc("0 0 * * *", func() {
+			bookController.UpdateStatusNotReturnedYet()
+		})
+		if err != nil {
+			log.Printf("Error adding cron job: %v", err)
+			return
+		}
+
+		cronJob.Start()
+		log.Println("Cron job for updating book statuses started.")
+	}()
 
 	return e
 }

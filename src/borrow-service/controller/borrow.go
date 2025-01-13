@@ -255,3 +255,23 @@ func (h borrowController) GetAllBorrows(ctx context.Context, param *pb.UserId) (
 		Data:   string(borrowsJSON),
 	}, nil
 }
+
+func (h borrowController) GetAllNotReturnedBook(ctx context.Context, param *pb.Empty) (*pb.WebResponse, error) {
+	// Call the service to retrieve all borrows by user
+	status, borrows := h.borrowService.GetAllNotReturnedBook()
+
+	// Convert status (int) to string
+	statusStr := fmt.Sprintf("%d", status)
+
+	// Marshal the borrows data into JSON
+	borrowsJSON, err := json.Marshal(borrows)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal borrows data: %v", err)
+	}
+
+	// Return the response
+	return &pb.WebResponse{
+		Status: statusStr,
+		Data:   string(borrowsJSON),
+	}, nil
+}

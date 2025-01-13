@@ -4,22 +4,34 @@ import (
 	"api-gateway/dto"
 	"api-gateway/helpers"
 	bookpb "api-gateway/pb/bookpb"
+	"api-gateway/pb/borrowpb"
 	"fmt"
+	"log"
 	"net/http"
+	"os"
 
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/labstack/echo/v4"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 type BookController struct {
-	Client bookpb.BookServiceClient
+	Client       bookpb.BookServiceClient
+	BorrowClient borrowpb.BorrowServiceClient
 }
 
 func NewBookController(client bookpb.BookServiceClient) BookController {
+	conn, err := grpc.Dial(os.Getenv("BORROW_SERVICE_URI"), grpc.WithInsecure())
+	if err != nil {
+		log.Fatalf("Failed to connect to book-service: %v", err)
+	}
+
+	borrowClient := borrowpb.NewBorrowServiceClient(conn)
 	return BookController{
-		Client: client,
+		Client:       client,
+		BorrowClient: borrowClient,
 	}
 }
 
@@ -235,4 +247,50 @@ func (b BookController) DeleteBookById(c echo.Context) error {
 	data := helpers.UnmarshalJSONToWebResponse(responseGrpc.Data)
 
 	return c.JSON(data.Status, data)
+}
+
+func (b BookController) UpdateStatusNotReturnedYet() {
+	ctx, cancel, err := helpers.NewServiceContext()
+	if err != nil {
+		log.Printf("Error making book context: %v", err)
+		return
+	}
+	defer cancel()
+
+	emptyRequest := &borrowpb.Empty{}
+	responseGrpc, err := b.BorrowClient.GetAllNotReturnedBook(ctx, emptyRequest)
+	if err != nil {
+		log.Printf("Error getting all not returned books: %v", err)
+		return
+	}
+
+	// Parse the gRPC response data
+	webResponseData := helpers.UnmarshalJSONToWebResponse(responseGrpc.Data)
+
+	var books []dto.BorrowedBook
+
+	// If data is in map form, manually populate the fields of books
+	if data, ok := webResponseData.Data["data"].(map[string]interface{}); ok {
+		books, ok = data["data"].([]dto.BorrowedBook)
+		if !ok {
+			log.Println("Failed to assert books to []dto.BorrowedBook")
+			return
+		}
+	}
+
+	for _, book := range books {
+		// Map to gRPC request
+		grpcRequest := &bookpb.UpdateStatusBookRequest{
+			BookId: book.BookID,
+			Status: "",
+		}
+
+		// Call gRPC service to update the status
+		_, err := b.Client.UpdateStatusBookById(ctx, grpcRequest)
+		if err != nil {
+			log.Printf("Failed to update book status for book ID %v: %v", book.BookID, err)
+		}
+	}
+
+	log.Printf("%d books have been updated to null status", len(books))
 }
