@@ -26,5 +26,6 @@ type BorrowedBookGRPCRequest struct {
 }
 
 type UpdateBorrowedBook struct {
+	ID         string     `json:"_id" bson:"_id"`
 	ReturnDate *time.Time `json:"return_date" bson:"return_date"`
 }

@@ -61,10 +61,12 @@ func (r *borrowRepository) GetBorrowById(id primitive.ObjectID) (*models.Borrowe
 }
 
 func (r *borrowRepository) GetAllBorrowsByUser(id primitive.ObjectID) (*[]models.BorrowedBook, error) {
+	// Convert ObjectID to string
+	userId := id.Hex()
 	var borrows []models.BorrowedBook
 
 	// Use Find for retrieving multiple records
-	cursor, err := r.collection.Find(context.Background(), bson.M{"user_id": id})
+	cursor, err := r.collection.Find(context.Background(), bson.M{"user_id": userId})
 	if err != nil {
 		return nil, err
 	}

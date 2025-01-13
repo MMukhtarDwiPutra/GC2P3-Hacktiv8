@@ -135,5 +135,47 @@ func (b BorrowController) GetAllBorrows(c echo.Context) error {
 // @Failure     500 {object} dto.ErrResponse
 // @Router      /borrows/return [post]
 func (b BorrowController) ReturnBook(c echo.Context) error {
-	return c.JSON(200, nil)
+	var borrowRequest dto.UpdateBorrowedBook
+
+	// Bind request body
+	if err := c.Bind(&borrowRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "invalid request parameters"})
+	}
+
+	// Validate request
+	if err := validate.Struct(borrowRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": fmt.Sprintf("invalid request parameters: %v", err)})
+	}
+
+	ctx, cancel, err := helpers.NewServiceContext()
+	if err != nil {
+		return err
+	}
+	defer cancel()
+
+	// Get the current date for BorrowedDate (assumes `helpers.GetCurrentDate` is implemented)
+	returnDate := helpers.GetCurrentDate()
+
+	log.Println(borrowRequest.ID)
+	// Map to gRPC request
+	grpcRequest := &borrowpb.UpdateBorrowedBook{
+		Id:         borrowRequest.ID,
+		ReturnDate: returnDate,
+	}
+
+	// Call gRPC service
+	responseGrpc, err := b.Client.ReturnBook(ctx, grpcRequest)
+	if err != nil {
+		if e, ok := status.FromError(err); ok {
+			switch e.Code() {
+			case codes.Internal:
+				return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Internal server error"})
+			}
+		}
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": fmt.Sprintf("Error response: %v", err)})
+	}
+
+	data := helpers.UnmarshalJSONToWebResponse(responseGrpc.Data)
+
+	return c.JSON(data.Status, data)
 }

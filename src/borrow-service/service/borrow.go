@@ -87,7 +87,7 @@ func (s *borrowService) GetBorrowById(id primitive.ObjectID) (int, map[string]in
 
 	borrowResult.ID = id
 
-	return http.StatusCreated, map[string]interface{}{
+	return http.StatusOK, map[string]interface{}{
 		"status":  http.StatusOK,
 		"message": "Get Borrow By Id Success",
 		"data":    borrowResult,
@@ -108,7 +108,7 @@ func (s *borrowService) GetAllBorrowsByUser(id primitive.ObjectID) (int, map[str
 		}
 	}
 
-	return http.StatusCreated, map[string]interface{}{
+	return http.StatusOK, map[string]interface{}{
 		"status":  http.StatusOK,
 		"message": "Get All Borrows Success",
 		"data":    borrowResult,

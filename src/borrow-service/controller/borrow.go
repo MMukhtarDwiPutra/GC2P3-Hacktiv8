@@ -111,12 +111,14 @@ func (h borrowController) BorrowABook(ctx context.Context, req *pb.BorrowedBookR
 
 func (h borrowController) ReturnBook(ctx context.Context, req *pb.UpdateBorrowedBook) (*pb.WebResponse, error) {
 	id, err := primitive.ObjectIDFromHex(req.GetId())
+
 	if err != nil {
 		return nil, fmt.Errorf("Error: %v", err.Error())
 	}
 
 	// Call your service to register the borrow
 	status, webResponse := h.borrowService.GetBorrowById(id)
+
 	// Convert webResponse (map) to JSON string
 	webResponseJSON, err := json.Marshal(webResponse)
 	if err != nil {
@@ -131,26 +133,52 @@ func (h borrowController) ReturnBook(ctx context.Context, req *pb.UpdateBorrowed
 		}, nil
 	}
 
+	// Assuming webResponse is a map that has a "data" field of type models.BorrowedBook
+	bookResponse, ok := webResponse["data"].(models.BorrowedBook)
+	if !ok {
+		return nil, fmt.Errorf("Failed to assert webResponse['data'] to BorrowedBook")
+	}
+
+	bookID := bookResponse.BookID
+
 	// Parse the string date to time.Time
 	returnDate, err := time.Parse("2006-01-02", req.GetReturnDate()) // Adjust format to match your input
 	if err != nil {
-		return nil, fmt.Errorf("Error parsing Borrowed Date: %v", err)
+		return nil, fmt.Errorf("Error parsing returnDate Date: %v", err)
 	}
 
-	// Construct the borrow request model
 	borrowRequest := models.UpdateBorrowedBook{
 		ReturnDate: &returnDate,
 	}
 
 	status, webResponse = h.borrowService.ReturnBook(id, borrowRequest)
+	log.Println("returnbook service")
 
 	// Convert status to string
 	statusStr := fmt.Sprintf("%d", status)
 
 	// Convert webResponse (map) to JSON string
-	webResponseJSON, err = json.Marshal(webResponse)
+	_, err = json.Marshal(webResponse)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to marshal webResponse: %v", err)
+	}
+
+	ctxBook, cancel, err := helpers.NewServiceContext()
+	if err != nil {
+		return nil, fmt.Errorf("Error making book context: %v", err)
+	}
+	defer cancel()
+
+	// Map to gRPC request
+	grpcRequest := &bookpb.UpdateStatusBookRequest{
+		BookId: bookID,
+		Status: "Availble",
+	}
+
+	// Call gRPC service
+	_, err = h.bookServiceClient.UpdateStatusBookById(ctxBook, grpcRequest)
+	if err != nil {
+		return nil, fmt.Errorf("%v", err)
 	}
 
 	// Map the response to WebResponse
