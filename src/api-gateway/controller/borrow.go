@@ -30,8 +30,8 @@ func NewBorrowController(client borrowpb.BorrowServiceClient) BorrowController {
 // @Produce     json
 // @Param       request body dto.BorrowedBookRequest true "Borrow book details"
 // @Success     200 {object} dto.SuccessResponse
-// @Failure     400 {object} utils.ErrResponse
-// @Failure     500 {object} utils.ErrResponse
+// @Failure     400 {object} dto.ErrResponse
+// @Failure     500 {object} dto.ErrResponse
 // @Router      /borrows [post]
 func (b BorrowController) BorrowABook(c echo.Context) error {
 	var borrowRequest dto.BorrowedBookRequest
@@ -93,7 +93,7 @@ func (b BorrowController) BorrowABook(c echo.Context) error {
 // @Accept      json
 // @Produce     json
 // @Success     200 {array} dto.BorrowResponse
-// @Failure     500 {object} utils.ErrResponse
+// @Failure     500 {object} dto.ErrResponse
 // @Router      /borrows [get]
 func (b BorrowController) GetAllBorrows(c echo.Context) error {
 	ctx, cancel, err := helpers.NewServiceContext()
@@ -132,8 +132,8 @@ func (b BorrowController) GetAllBorrows(c echo.Context) error {
 // @Produce     json
 // @Param       id path string true "Borrow ID"
 // @Success     200 {object} dto.SuccessResponse
-// @Failure     500 {object} utils.ErrResponse
-// @Router      /borrows/{id}/return [post]
+// @Failure     500 {object} dto.ErrResponse
+// @Router      /borrows/return [post]
 func (b BorrowController) ReturnBook(c echo.Context) error {
 	return c.JSON(200, nil)
 }

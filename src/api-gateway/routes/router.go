@@ -3,13 +3,11 @@ package routes
 import (
 	"api-gateway/controller"
 	_ "api-gateway/docs" // Ensure this is enabled for Swagger
-	"api-gateway/helpers"
 	"api-gateway/middlewares"
 
 	"html/template"
 	"net/http"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	echoSwagger "github.com/swaggo/echo-swagger"
@@ -28,9 +26,6 @@ func NewRouter(
 ) *echo.Echo {
 	// Create a new Echo instance
 	e := echo.New()
-
-	// Set custom validator
-	e.Validator = &helpers.CustomValidator{Validator: validator.New()}
 
 	// Middleware setup
 	e.Pre(middleware.RemoveTrailingSlash())
@@ -51,7 +46,7 @@ func NewRouter(
 	e.POST("/users/login", userController.Login)
 
 	// Book routes
-	e.POST("/books", bookController.CreateBook, middlewares.RequireAuth)
+	e.POST("/books", bookController.Create, middlewares.RequireAuth)
 	e.GET("/books", bookController.GetAllBooks, middlewares.RequireAuth)
 	e.PUT("/books/:id", bookController.UpdateBookById, middlewares.RequireAuth)
 	e.GET("/books/:id", bookController.GetBookById, middlewares.RequireAuth)

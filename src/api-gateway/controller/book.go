@@ -23,21 +23,6 @@ func NewBookController(client bookpb.BookServiceClient) BookController {
 	}
 }
 
-// @Summary     Register a new book
-// @Description Register a new book with the role 'Book'
-// @Tags        customer
-// @Accept      json
-// @Produce     json
-// @Param       request body dto.BookRegister true "Book registration details"
-// @Success     201 {object} dto.WebResponse
-// @Failure     400 {object} dto.ErrResponse
-// @Failure     409 {object} dto.ErrResponse
-// @Failure     500 {object} dto.ErrResponse
-// @Router      /books/register/book [post]
-func (b BookController) CreateBook(c echo.Context) error {
-	return b.Create(c)
-}
-
 // @Summary     Create a new book
 // @Description Register a new book with the role 'Book'
 // @Tags        books

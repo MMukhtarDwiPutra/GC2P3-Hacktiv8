@@ -33,9 +33,9 @@ func NewUserController(client userpb.UserServiceClient) UserController {
 // @Accept      json
 // @Produce     json
 // @Param       request body dto.RegisterRequest true "User registration details"
-// @Success     201 {object} dto.SwaggerResponseRegister
-// @Failure     400 {object} utils.ErrResponse
-// @Failure     500 {object} utils.ErrResponse
+// @Success     201 {object} dto.RegisterResponse
+// @Failure     400 {object} dto.ErrResponse
+// @Failure     500 {object} dto.ErrResponse
 // @Router      /users/register [post]
 func (u UserController) Register(c echo.Context) error {
 	var userRequest dto.RegisterRequest
@@ -87,9 +87,9 @@ func (u UserController) Register(c echo.Context) error {
 // @Accept      json
 // @Produce     json
 // @Param       request body dto.LoginRequest true "Login details"
-// @Success     200 {object} dto.SwaggerResponseLogin
-// @Failure     400 {object} utils.ErrResponse
-// @Failure     500 {object} utils.ErrResponse
+// @Success     200 {object} dto.LoginResponse
+// @Failure     400 {object} dto.ErrResponse
+// @Failure     500 {object} dto.ErrResponse
 // @Router      /users/login [post]
 func (u UserController) Login(c echo.Context) error {
 	var userRequest dto.LoginRequest

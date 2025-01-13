@@ -3,9 +3,9 @@ package dto
 import "go.mongodb.org/mongo-driver/bson/primitive"
 
 type User struct {
-	UserID   uint32 `json:"_id" gorm:"primaryKey"`
-	Username string `json:"username" gorm:"not null"`
-	Password string `json:"password,omitempty" gorm:"not null"`
+	UserID   primitive.ObjectID `bson:"_id, omitempty" json:"_id"`
+	Username string             `json:"username"`
+	Password string             `json:"password,omitempty"`
 }
 
 type RegisterRequest struct {
@@ -19,6 +19,10 @@ type LoginRequest struct {
 }
 
 type UserResponse struct {
-	UserID   primitive.ObjectID `json:"_id" gorm:"primaryKey"`
+	UserID   primitive.ObjectID `bson:"_id, omitempty" json:"_id"`
 	Username string             `json:"username" validate:"required"`
+}
+
+type LoginResponse struct {
+	Token string `json:"token"`
 }
