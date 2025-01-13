@@ -1,0 +1,58 @@
+syntax = "proto3";
+
+package borrowpb; // Ensure this matches the generated Go package name
+
+import "google/protobuf/empty.proto";
+
+option go_package = "./pb"; // Updated to match the generated Go package
+
+service BorrowService {
+    rpc BorrowABook (BorrowedBookRequest) returns (WebResponse);
+    rpc ReturnBook (UpdateBorrowedBook) returns (WebResponse);
+    rpc GetAllBorrows (UserId) returns (WebResponse);
+    rpc GetAllNotReturnedBook (Empty) returns (WebResponse); // Corrected this line
+}
+
+message BorrowedBookData {
+    string id = 1;
+    string book_id = 2;
+    string user_id = 3;
+    string borrowed_date = 4;
+    string return_date = 5;
+}
+
+message BorrowedBookRequest {
+    string book_id = 1;
+    string user_id = 2;
+    string borrowed_date = 3;
+    string return_date = 4;
+}
+
+message UpdateBorrowedBookRequest {
+    string book_id = 1;
+    string user_id = 2;
+    string borrowed_date = 3;
+    string return_date = 4;
+    string borrowed_book_id = 5;
+}
+
+message WebResponse {
+    string status = 1;
+    string data = 2;
+}
+
+message BorrowedBookId {
+    string id = 1;
+}
+
+message UserId {
+    string id = 1;
+}
+
+message UpdateBorrowedBook{
+    string id = 1;
+    string return_date = 2;
+}
+
+message Empty{
+}
