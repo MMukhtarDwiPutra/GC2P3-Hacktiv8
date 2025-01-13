@@ -1,0 +1,81 @@
+version: '3.8'
+
+services:
+  user-service:
+    build:
+      context: ./src/user-service
+      dockerfile: Dockerfile
+    container_name: user_service
+    ports:
+      - "50051:50051"  
+    environment:
+      - ENV_FILE_PATH=.env
+      - TZ=Asia/Jakarta  # Set timezone
+    depends_on:
+      - mongodb
+    networks:
+      - microservices-network
+
+  book-service:
+    build:
+      context: ./src/book-service
+      dockerfile: Dockerfile
+    container_name: book_service
+    ports:
+      - "50052:50052"  
+    environment:
+      - ENV_FILE_PATH=.env
+      - TZ=Asia/Jakarta  # Set timezone
+    depends_on:
+      - mongodb
+    networks:
+      - microservices-network
+
+  borrow-service:
+    build:
+      context: ./src/borrow-service
+      dockerfile: Dockerfile
+    container_name: borrow_service
+    ports:
+      - "50053:50053"  
+    environment:
+      - ENV_FILE_PATH=.env
+      - TZ=Asia/Jakarta  # Set timezone
+    depends_on:
+      - mongodb
+    networks:
+      - microservices-network
+
+  api-gateway:
+    build:
+      context: ./src/api-gateway
+      dockerfile: Dockerfile
+    container_name: api_gateway
+    ports:
+      - "8080:8080" # Expose the gateway on port 8080
+    depends_on:
+      - user-service
+      - book-service
+      - borrow-service
+    networks:
+      - microservices-network
+
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - "27017:27017" # MongoDB default port
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    networks:
+      - microservices-network
+    volumes:
+      - mongodb_data:/data/db
+
+networks:
+  microservices-network:
+    driver: bridge
+
+volumes:
+  mongodb_data: {}
