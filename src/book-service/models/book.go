@@ -22,3 +22,8 @@ type BookRequest struct {
 	Status        string    `json:"status" gorm:"not null" validate:"required"`
 	UserID        string    `json:"user_id" gorm:"not null" validate:"required"`
 }
+
+type UpdateStatusBookRequest struct {
+	BookID primitive.ObjectID `json:"_id" bson:"_id,omitempty"`
+	Status string             `json:"status" gorm:"not null" validate:"required"`
+}

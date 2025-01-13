@@ -15,6 +15,7 @@ type BookService interface {
 	GetAllBooks() (int, map[string]interface{})
 	UpdateBookById(id primitive.ObjectID, book models.BookRequest) (int, map[string]interface{})
 	DeleteBookById(id primitive.ObjectID) (int, map[string]interface{})
+	UpdateStatusBookById(id primitive.ObjectID, book models.UpdateStatusBookRequest) (int, map[string]interface{})
 }
 
 type bookService struct {
@@ -119,6 +120,23 @@ func (s *bookService) UpdateBookById(id primitive.ObjectID, book models.BookRequ
 
 func (s *bookService) DeleteBookById(id primitive.ObjectID) (int, map[string]interface{}) {
 	_, err := s.bookRepository.DeleteBookById(id)
+	if err != nil {
+		return http.StatusInternalServerError, map[string]interface{}{
+			"status":  http.StatusInternalServerError,
+			"message": fmt.Sprintf("Error database: %v", err),
+		}
+	}
+
+	webResponse := map[string]interface{}{
+		"status":  http.StatusOK,
+		"message": fmt.Sprintf("Book with ID %v has been deleted.", id),
+	}
+
+	return http.StatusOK, webResponse
+}
+
+func (s *bookService) UpdateStatusBookById(id primitive.ObjectID, book models.UpdateStatusBookRequest) (int, map[string]interface{}) {
+	_, err := s.bookRepository.UpdateStatusBookById(id, book)
 	if err != nil {
 		return http.StatusInternalServerError, map[string]interface{}{
 			"status":  http.StatusInternalServerError,

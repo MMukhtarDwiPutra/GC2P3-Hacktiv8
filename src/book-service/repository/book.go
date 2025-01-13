@@ -18,6 +18,7 @@ type BookRepository interface {
 	GetAllBooks() (*[]models.Book, error)
 	UpdateBook(id primitive.ObjectID, book models.BookRequest) (*mongo.UpdateResult, error)
 	DeleteBookById(id primitive.ObjectID) (*mongo.DeleteResult, error)
+	UpdateStatusBookById(id primitive.ObjectID, book models.UpdateStatusBookRequest) (*mongo.UpdateResult, error)
 }
 
 type bookRepository struct {
@@ -110,6 +111,20 @@ func (r *bookRepository) DeleteBookById(id primitive.ObjectID) (*mongo.DeleteRes
 	// Untuk return 404
 	if result.DeletedCount == 0 {
 		return nil, echo.NewHTTPError(http.StatusNotFound, "Data Not Found")
+	}
+
+	return result, nil
+}
+
+func (r *bookRepository) UpdateStatusBookById(id primitive.ObjectID, book models.UpdateStatusBookRequest) (*mongo.UpdateResult, error) {
+	// Proses Update Data
+	result, err := r.collection.UpdateOne(
+		context.Background(),
+		bson.M{"_id": id},
+		bson.M{"$set": book},
+	)
+	if err != nil {
+		return nil, err
 	}
 
 	return result, nil

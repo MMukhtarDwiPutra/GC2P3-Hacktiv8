@@ -213,3 +213,54 @@ func (h bookController) DeleteBookById(ctx context.Context, req *pb.BookId) (*pb
 		Data:   string(webResponseJSON), // Convert to string
 	}, nil
 }
+
+func (h bookController) UpdateStatusBookById(ctx context.Context, req *pb.UpdateStatusBookRequest) (*pb.WebResponse, error) {
+	id, err := primitive.ObjectIDFromHex(req.GetBookId())
+	if err != nil {
+		return nil, fmt.Errorf("Error: %v", err.Error())
+	}
+
+	// Call your service to register the book
+	status, webResponse := h.bookService.GetBookById(id)
+
+	// Convert webResponse (map) to JSON string
+	webResponseJSON, err := json.Marshal(webResponse)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal webResponse: %v", err)
+	}
+
+	if status != 200 {
+		// Map the response to WebResponse
+		return &pb.WebResponse{
+			Status: fmt.Sprintf("%d", status),
+			Data:   string(webResponseJSON), // Convert to string
+		}, nil
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("Error parsing PublishedDate: %v", err)
+	}
+
+	// Create the BookRequest struct
+	bookRequest := models.UpdateStatusBookRequest{
+		Status: req.GetStatus(),
+	}
+
+	// Call your service to register the book
+	status, webResponse = h.bookService.UpdateStatusBookById(id, bookRequest)
+
+	// Convert status (int) to string
+	statusStr := fmt.Sprintf("%d", status)
+
+	// Convert webResponse (map) to JSON string
+	webResponseJSON, err = json.Marshal(webResponse)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal webResponse: %v", err)
+	}
+
+	// Map the response to WebResponse
+	return &pb.WebResponse{
+		Status: statusStr,
+		Data:   string(webResponseJSON), // Convert to string
+	}, nil
+}

@@ -134,7 +134,8 @@ func (h borrowController) ReturnBook(ctx context.Context, req *pb.UpdateBorrowed
 	}
 
 	// Assuming webResponse is a map that has a "data" field of type models.BorrowedBook
-	bookResponse, ok := webResponse["data"].(models.BorrowedBook)
+	log.Println(webResponse["data"])
+	bookResponse, ok := webResponse["data"].(*models.BorrowedBook)
 	if !ok {
 		return nil, fmt.Errorf("Failed to assert webResponse['data'] to BorrowedBook")
 	}
@@ -152,7 +153,6 @@ func (h borrowController) ReturnBook(ctx context.Context, req *pb.UpdateBorrowed
 	}
 
 	status, webResponse = h.borrowService.ReturnBook(id, borrowRequest)
-	log.Println("returnbook service")
 
 	// Convert status to string
 	statusStr := fmt.Sprintf("%d", status)
