@@ -7,6 +7,7 @@ import (
 	bookpb "borrow-service/pb/bookpb" // Ensure this is the correct import path
 	"borrow-service/service"          // Ensure this is the correct import path
 	"log"
+	"net/http"
 	"os"
 
 	"context"
@@ -83,7 +84,42 @@ func (h borrowController) BorrowABook(ctx context.Context, req *pb.BorrowedBookR
 		return nil, fmt.Errorf("Failed to marshal webResponse: %v", err)
 	}
 
+	var bookResponse models.Book
+
+	// If data is in map form, manually populate the fields of Book
+	if data, ok := webResponseData.Data["data"].(map[string]interface{}); ok {
+		bookResponse.Status = data["status"].(string)
+	} else {
+		return nil, fmt.Errorf("Failed to assert webResponse['data'] to models.Book")
+	}
+
+	if bookResponse.Status == "Borrowed" {
+		webResponse := map[string]interface{}{
+			"message": fmt.Sprintf("Buku sedang dipinjam!"),
+		}
+		webResponseJSON, err = json.Marshal(webResponse)
+
+		return &pb.WebResponse{
+			Status: fmt.Sprintf("%v", http.StatusOK),
+			Data:   string(webResponseJSON), // Convert to string
+		}, nil
+	}
+
+	// Map to gRPC request
+	grpcRequest := &bookpb.UpdateStatusBookRequest{
+		BookId: req.GetBookId(),
+		Status: "Borrowed",
+	}
+
+	// Call gRPC service
+	_, err = h.bookServiceClient.UpdateStatusBookById(ctxBook, grpcRequest)
+
+	if err != nil {
+		return nil, fmt.Errorf("%v", err)
+	}
+
 	if webResponseData.Status != 200 {
+		log.Println(webResponseData.Status)
 		return &pb.WebResponse{
 			Status: fmt.Sprintf("%v", webResponseData.Status),
 			Data:   string(webResponseJSON), // Convert to string
@@ -133,8 +169,6 @@ func (h borrowController) ReturnBook(ctx context.Context, req *pb.UpdateBorrowed
 		}, nil
 	}
 
-	// Assuming webResponse is a map that has a "data" field of type models.BorrowedBook
-	log.Println(webResponse["data"])
 	bookResponse, ok := webResponse["data"].(*models.BorrowedBook)
 	if !ok {
 		return nil, fmt.Errorf("Failed to assert webResponse['data'] to BorrowedBook")
@@ -158,6 +192,12 @@ func (h borrowController) ReturnBook(ctx context.Context, req *pb.UpdateBorrowed
 	statusStr := fmt.Sprintf("%d", status)
 
 	// Convert webResponse (map) to JSON string
+	webResponseJSON, err = json.Marshal(webResponse)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal webResponse: %v", err)
+	}
+
+	// Convert webResponse (map) to JSON string
 	_, err = json.Marshal(webResponse)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to marshal webResponse: %v", err)
@@ -172,11 +212,12 @@ func (h borrowController) ReturnBook(ctx context.Context, req *pb.UpdateBorrowed
 	// Map to gRPC request
 	grpcRequest := &bookpb.UpdateStatusBookRequest{
 		BookId: bookID,
-		Status: "Availble",
+		Status: "Available",
 	}
 
 	// Call gRPC service
 	_, err = h.bookServiceClient.UpdateStatusBookById(ctxBook, grpcRequest)
+
 	if err != nil {
 		return nil, fmt.Errorf("%v", err)
 	}

@@ -69,7 +69,7 @@ func (s *bookService) GetBookById(id primitive.ObjectID) (int, map[string]interf
 
 	bookResult.BookID = id
 
-	return http.StatusCreated, map[string]interface{}{
+	return http.StatusOK, map[string]interface{}{
 		"status":  http.StatusOK,
 		"message": "Get Book By Id Success",
 		"data":    bookResult,
@@ -85,7 +85,7 @@ func (s *bookService) GetAllBooks() (int, map[string]interface{}) {
 		}
 	}
 
-	return http.StatusCreated, map[string]interface{}{
+	return http.StatusOK, map[string]interface{}{
 		"status":  http.StatusOK,
 		"message": "Get All Books Success",
 		"data":    bookResult,

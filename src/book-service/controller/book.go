@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/go-playground/validator"
@@ -231,6 +232,7 @@ func (h bookController) UpdateStatusBookById(ctx context.Context, req *pb.Update
 
 	if status != 200 {
 		// Map the response to WebResponse
+		log.Println("status tidak ok: %v", status)
 		return &pb.WebResponse{
 			Status: fmt.Sprintf("%d", status),
 			Data:   string(webResponseJSON), // Convert to string
@@ -248,6 +250,7 @@ func (h bookController) UpdateStatusBookById(ctx context.Context, req *pb.Update
 
 	// Call your service to register the book
 	status, webResponse = h.bookService.UpdateStatusBookById(id, bookRequest)
+	log.Println("updated status to :%v", bookRequest.Status)
 
 	// Convert status (int) to string
 	statusStr := fmt.Sprintf("%d", status)
